@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h1 class="card-title mb-0">
+                        <i class="fas fa-check-circle text-primary me-2"></i>Approve or Reject Visit
+                    </h1>
+                    <p class="text-muted">Review visit details and approve or reject the request</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-7">
+            <div class="card shadow mb-4 mb-md-0">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Visit Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-2">Visitor Details</h6>
+                                <h5>{{ visit.visitor_name }}</h5>
+                                {% if visit.visitor_phone %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-phone text-secondary me-2"></i>{{ visit.visitor_phone }}
+                                    </p>
+                                {% endif %}
+                                {% if visit.visitor_email %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-envelope text-secondary me-2"></i>{{ visit.visitor_email }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-2">Request Details</h6>
+                                <p class="mb-1">
+                                    <i class="fas fa-calendar-alt text-secondary me-2"></i>
+                                    <strong>Expected Arrival:</strong>
+                                    <br/>{{ visit.expected_arrival|date:"F d, Y H:i" }}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="fas fa-user-shield text-secondary me-2"></i>
+                                    <strong>Requested By:</strong>
+                                    <br/>{{ visit.requested_by.get_full_name }}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="fas fa-clock text-secondary me-2"></i>
+                                    <strong>Requested:</strong>
+                                    <br/>{{ visit.requested_at|date:"F d, Y H:i" }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Purpose of Visit</h6>
+                        <div class="p-3 bg-light rounded">{{ visit.purpose }}</div>
+                    </div>
+                    
+                    {% if visit.notes %}
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Additional Notes</h6>
+                        <div class="p-3 bg-light rounded">{{ visit.notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>Approval Decision
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="needs-validation" novalidate>
+                        {% csrf_token %}
+                        
+                        <div class="mb-4">
+                            <p>Do you want to approve or reject this visit request?</p>
+                            
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="radio" name="{{ form.action.name }}" id="approve" value="APPROVE" required checked>
+                                <label class="form-check-label" for="approve">
+                                    <i class="fas fa-check-circle text-success me-2"></i>Approve Visit
+                                </label>
+                                <div class="form-text">
+                                    Allow this visitor to enter the premises at the scheduled time.
+                                </div>
+                            </div>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="{{ form.action.name }}" id="reject" value="REJECT" required>
+                                <label class="form-check-label" for="reject">
+                                    <i class="fas fa-times-circle text-danger me-2"></i>Reject Visit
+                                </label>
+                                <div class="form-text">
+                                    Deny this visitor access to the premises.
+                                </div>
+                            </div>
+                            
+                            {% if form.action.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.action.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4 rejection-reason" style="display: none;">
+                            <label for="{{ form.rejection_reason.id_for_label }}" class="form-label">
+                                <i class="fas fa-comment-alt me-2"></i>Rejection Reason
+                                <span class="text-danger">*</span>
+                            </label>
+                            <textarea name="{{ form.rejection_reason.name }}" id="{{ form.rejection_reason.id_for_label }}" 
+                                  class="form-control" rows="3"></textarea>
+                            <div class="form-text">
+                                {{ form.rejection_reason.help_text }}
+                            </div>
+                            {% if form.rejection_reason.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.rejection_reason.errors }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        {% if form.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ form.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{% url 'resident_visit_requests' %}" class="btn btn-light me-md-2">
+                                <i class="fas fa-arrow-left me-2"></i>Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Decision
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Show/hide rejection reason based on selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const approveRadio = document.getElementById('approve');
+        const rejectRadio = document.getElementById('reject');
+        const rejectionReasonDiv = document.querySelector('.rejection-reason');
+        const rejectionReasonInput = document.getElementById('{{ form.rejection_reason.id_for_label }}');
+        
+        function updateRejectionReason() {
+            if (rejectRadio.checked) {
+                rejectionReasonDiv.style.display = 'block';
+                rejectionReasonInput.setAttribute('required', '');
+            } else {
+                rejectionReasonDiv.style.display = 'none';
+                rejectionReasonInput.removeAttribute('required');
+            }
+        }
+        
+        // Initial state
+        updateRejectionReason();
+        
+        // Add event listeners
+        approveRadio.addEventListener('change', updateRejectionReason);
+        rejectRadio.addEventListener('change', updateRejectionReason);
+        
+        // Form validation
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function(event) {
+            if (rejectRadio.checked && !rejectionReasonInput.value.trim()) {
+                event.preventDefault();
+                event.stopPropagation();
+                
+                rejectionReasonInput.classList.add('is-invalid');
+                rejectionReasonDiv.insertAdjacentHTML('beforeend', 
+                    '<div class="invalid-feedback d-block">Please provide a reason for rejecting the visit.</div>');
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

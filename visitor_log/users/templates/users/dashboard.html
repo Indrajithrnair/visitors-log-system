@@ -1,0 +1,283 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body d-flex align-items-center">
+                    <div>
+                        <h1 class="card-title mb-0">Welcome to your Dashboard</h1>
+                        <p class="text-muted mb-0">Here's an overview of your visitor management system</p>
+                    </div>
+                    <div class="ms-auto">
+                        {% if user.role == 'ADMIN' %}
+                            <span class="badge admin-role p-2 fs-6">Administrator</span>
+                        {% elif user.role == 'SECURITY' %}
+                            <span class="badge security-role p-2 fs-6">Security</span>
+                        {% elif user.role == 'RESIDENT' %}
+                            <span class="badge resident-role p-2 fs-6">Resident</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Quick Stats -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-user-circle fa-2x text-primary me-3"></i>
+                        <h5 class="card-title mb-0">User Information</h5>
+                    </div>
+                    <div class="card-text">
+                        <div class="mb-2">
+                            <i class="fas fa-user me-2 text-muted"></i>
+                            <strong>Username:</strong> {{ user.username }}
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-envelope me-2 text-muted"></i>
+                            <strong>Email:</strong> {{ user.email }}
+                        </div>
+                        <div class="mb-2">
+                            <i class="fas fa-id-badge me-2 text-muted"></i>
+                            <strong>Role:</strong> {{ user.get_role_display }}
+                        </div>
+                    </div>
+                    <a href="#" class="btn btn-outline-primary mt-3">
+                        <i class="fas fa-user-edit me-2"></i>Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Role-Based Access -->
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-shield-alt fa-2x text-primary me-3"></i>
+                        <h5 class="card-title mb-0">Role-Based Access</h5>
+                    </div>
+                    
+                    {% if user.role == 'ADMIN' %}
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-users-cog fa-2x mb-3 text-secondary"></i>
+                                        <h6>User Management</h6>
+                                        <a href="#" class="btn btn-sm btn-primary mt-2">Manage Users</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-cogs fa-2x mb-3 text-secondary"></i>
+                                        <h6>System Settings</h6>
+                                        <a href="#" class="btn btn-sm btn-primary mt-2">Configure</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-chart-line fa-2x mb-3 text-secondary"></i>
+                                        <h6>All Reports</h6>
+                                        <a href="#" class="btn btn-sm btn-primary mt-2">View Reports</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% elif user.role == 'SECURITY' %}
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-user-friends fa-2x mb-3 text-secondary"></i>
+                                        <h6>Visitor Management</h6>
+                                        <a href="{% url 'visit_list' %}" class="btn btn-sm btn-primary mt-2">Manage Visitors</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-clipboard-check fa-2x mb-3 text-secondary"></i>
+                                        <h6>Entry/Exit Logs</h6>
+                                        <a href="{% url 'create_visit_request' %}" class="btn btn-sm btn-primary mt-2">New Visit</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-alt fa-2x mb-3 text-secondary"></i>
+                                        <h6>Security Reports</h6>
+                                        <a href="#" class="btn btn-sm btn-primary mt-2">View Reports</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-history fa-2x mb-3 text-secondary"></i>
+                                        <h6>Visitor Requests</h6>
+                                        <a href="{% url 'resident_visit_requests' %}" class="btn btn-sm btn-primary mt-2">View Requests</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-user-cog fa-2x mb-3 text-secondary"></i>
+                                        <h6>Personal Settings</h6>
+                                        <a href="#" class="btn btn-sm btn-primary mt-2">Settings</a>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card h-100 bg-light">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-file-alt fa-2x mb-3 text-secondary"></i>
+                                        <h6>Basic Reports</h6>
+                                        <a href="#" class="btn btn-sm btn-primary mt-2">View Reports</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity / Quick Actions -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <ul class="nav nav-tabs card-header-tabs" id="dashboardTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="activity-tab" data-bs-toggle="tab" data-bs-target="#activity" 
+                                type="button" role="tab" aria-controls="activity" aria-selected="true">
+                                <i class="fas fa-clock me-2"></i>Recent Activity
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="quicklinks-tab" data-bs-toggle="tab" data-bs-target="#quicklinks" 
+                                type="button" role="tab" aria-controls="quicklinks" aria-selected="false">
+                                <i class="fas fa-bolt me-2"></i>Quick Links
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <div class="tab-content" id="dashboardTabsContent">
+                        <div class="tab-pane fade show active" id="activity" role="tabpanel" aria-labelledby="activity-tab">
+                            <div class="row">
+                                <div class="col-12">
+                                    <h5 class="mb-3">Recent System Activity</h5>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th scope="col">Date</th>
+                                                    <th scope="col">Activity</th>
+                                                    <th scope="col">Status</th>
+                                                    <th scope="col">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>{% now "F d, Y" %}</td>
+                                                    <td>System Login</td>
+                                                    <td><span class="badge bg-success">Completed</span></td>
+                                                    <td><a href="#" class="btn btn-sm btn-outline-primary">Details</a></td>
+                                                </tr>
+                                                {% if user.role == 'SECURITY' %}
+                                                    <tr>
+                                                        <td>{% now "F d, Y" %}</td>
+                                                        <td>New Visit Request System</td>
+                                                        <td><span class="badge bg-primary">Available</span></td>
+                                                        <td><a href="{% url 'create_visit_request' %}" class="btn btn-sm btn-outline-primary">Create Visit</a></td>
+                                                    </tr>
+                                                {% elif user.role == 'RESIDENT' %}
+                                                    <tr>
+                                                        <td>{% now "F d, Y" %}</td>
+                                                        <td>Visitor Request Dashboard</td>
+                                                        <td><span class="badge bg-primary">Available</span></td>
+                                                        <td><a href="{% url 'resident_visit_requests' %}" class="btn btn-sm btn-outline-primary">View Requests</a></td>
+                                                    </tr>
+                                                {% endif %}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="tab-pane fade" id="quicklinks" role="tabpanel" aria-labelledby="quicklinks-tab">
+                            <div class="row">
+                                <div class="col-12">
+                                    <h5 class="mb-3">Quick Links</h5>
+                                    <div class="row g-3">
+                                        {% if user.role == 'SECURITY' %}
+                                            <div class="col-md-3 col-sm-6">
+                                                <a href="{% url 'create_visit_request' %}" class="text-decoration-none">
+                                                    <div class="card bg-light h-100">
+                                                        <div class="card-body text-center p-3">
+                                                            <i class="fas fa-plus-circle fa-2x mb-2 text-primary"></i>
+                                                            <p class="mb-0">New Visit Request</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                            <div class="col-md-3 col-sm-6">
+                                                <a href="{% url 'visit_list' %}" class="text-decoration-none">
+                                                    <div class="card bg-light h-100">
+                                                        <div class="card-body text-center p-3">
+                                                            <i class="fas fa-clipboard-list fa-2x mb-2 text-primary"></i>
+                                                            <p class="mb-0">All Visits</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        {% elif user.role == 'RESIDENT' %}
+                                            <div class="col-md-3 col-sm-6">
+                                                <a href="{% url 'resident_visit_requests' %}" class="text-decoration-none">
+                                                    <div class="card bg-light h-100">
+                                                        <div class="card-body text-center p-3">
+                                                            <i class="fas fa-clipboard-check fa-2x mb-2 text-primary"></i>
+                                                            <p class="mb-0">Pending Approvals</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        {% endif %}
+                                        <div class="col-md-3 col-sm-6">
+                                            <a href="#" class="text-decoration-none">
+                                                <div class="card bg-light h-100">
+                                                    <div class="card-body text-center p-3">
+                                                        <i class="fas fa-user-cog fa-2x mb-2 text-primary"></i>
+                                                        <p class="mb-0">Profile Settings</p>
+                                                    </div>
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

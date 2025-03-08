@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="card-title mb-0">
+                            <i class="fas fa-clipboard-list text-primary me-2"></i>Visit Details
+                        </h1>
+                        <p class="text-muted mb-0">Detailed information about this visit</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'visit_list' %}" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-arrow-left me-2"></i>Back to List
+                        </a>
+                        {% if visit.status == 'APPROVED' %}
+                            <a href="{% url 'check_in_visit' visit.id %}" class="btn btn-success">
+                                <i class="fas fa-sign-in-alt me-2"></i>Check In
+                            </a>
+                        {% elif visit.status == 'CHECKED_IN' %}
+                            <a href="{% url 'check_out_visit' visit.id %}" class="btn btn-info">
+                                <i class="fas fa-sign-out-alt me-2"></i>Check Out
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Visit Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-2">Visitor Details</h6>
+                                <h5>{{ visit.visitor_name }}</h5>
+                                {% if visit.visitor_phone %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-phone text-secondary me-2"></i>{{ visit.visitor_phone }}
+                                    </p>
+                                {% endif %}
+                                {% if visit.visitor_email %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-envelope text-secondary me-2"></i>{{ visit.visitor_email }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-2">Resident Information</h6>
+                                <h5>{{ visit.resident.get_full_name }}</h5>
+                                <p class="mb-1">
+                                    <i class="fas fa-envelope text-secondary me-2"></i>{{ visit.resident.email }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-2">Visit Status</h6>
+                                <div class="d-flex align-items-center">
+                                    {% if visit.status == 'PENDING' %}
+                                        <div class="badge bg-warning p-2 fs-6">Pending</div>
+                                    {% elif visit.status == 'APPROVED' %}
+                                        <div class="badge bg-success p-2 fs-6">Approved</div>
+                                    {% elif visit.status == 'REJECTED' %}
+                                        <div class="badge bg-danger p-2 fs-6">Rejected</div>
+                                    {% elif visit.status == 'CHECKED_IN' %}
+                                        <div class="badge bg-primary p-2 fs-6">Checked In</div>
+                                    {% elif visit.status == 'CHECKED_OUT' %}
+                                        <div class="badge bg-info p-2 fs-6">Checked Out</div>
+                                    {% elif visit.status == 'CANCELLED' %}
+                                        <div class="badge bg-secondary p-2 fs-6">Cancelled</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h6 class="text-muted mb-2">Request Details</h6>
+                                <p class="mb-1">
+                                    <i class="fas fa-calendar-alt text-secondary me-2"></i>
+                                    <strong>Expected:</strong>
+                                    {{ visit.expected_arrival|date:"F d, Y H:i" }}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="fas fa-user-shield text-secondary me-2"></i>
+                                    <strong>Requested By:</strong>
+                                    {{ visit.requested_by.get_full_name }}
+                                </p>
+                                <p class="mb-1">
+                                    <i class="fas fa-clock text-secondary me-2"></i>
+                                    <strong>Requested:</strong>
+                                    {{ visit.requested_at|date:"F d, Y H:i" }}
+                                </p>
+                                
+                                {% if visit.status == 'APPROVED' or visit.status == 'REJECTED' %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-check-circle text-secondary me-2"></i>
+                                        <strong>Decision Time:</strong>
+                                        {{ visit.approval_time|date:"F d, Y H:i" }}
+                                    </p>
+                                {% endif %}
+                                
+                                {% if visit.entry_time %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-sign-in-alt text-secondary me-2"></i>
+                                        <strong>Entry Time:</strong>
+                                        {{ visit.entry_time|date:"F d, Y H:i" }}
+                                    </p>
+                                {% endif %}
+                                
+                                {% if visit.exit_time %}
+                                    <p class="mb-1">
+                                        <i class="fas fa-sign-out-alt text-secondary me-2"></i>
+                                        <strong>Exit Time:</strong>
+                                        {{ visit.exit_time|date:"F d, Y H:i" }}
+                                    </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Purpose of Visit</h6>
+                        <div class="p-3 bg-light rounded">{{ visit.purpose }}</div>
+                    </div>
+                    
+                    {% if visit.status == 'REJECTED' and visit.rejection_reason %}
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Rejection Reason</h6>
+                        <div class="p-3 bg-light rounded text-danger">{{ visit.rejection_reason }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if visit.notes %}
+                    <div class="mb-4">
+                        <h6 class="text-muted mb-2">Additional Notes</h6>
+                        <div class="p-3 bg-light rounded">{{ visit.notes }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>Visit Timeline
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item py-3">
+                            <div class="d-flex">
+                                <div class="timeline-icon bg-primary text-white">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h6 class="mb-1">Visit Requested</h6>
+                                    <p class="text-muted mb-0 small">{{ visit.requested_at|date:"F d, Y H:i" }}</p>
+                                    <p class="mb-0">{{ visit.requested_by.get_full_name }} created this visit request.</p>
+                                </div>
+                            </div>
+                        </li>
+                        
+                        {% if visit.status != 'PENDING' %}
+                            <li class="list-group-item py-3">
+                                <div class="d-flex">
+                                    <div class="timeline-icon {% if visit.status == 'APPROVED' or visit.status == 'CHECKED_IN' or visit.status == 'CHECKED_OUT' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                                        <i class="fas {% if visit.status == 'APPROVED' or visit.status == 'CHECKED_IN' or visit.status == 'CHECKED_OUT' %}fa-check{% else %}fa-times{% endif %}"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-1">Visit {% if visit.status == 'APPROVED' or visit.status == 'CHECKED_IN' or visit.status == 'CHECKED_OUT' %}Approved{% else %}Rejected{% endif %}</h6>
+                                        <p class="text-muted mb-0 small">{{ visit.approval_time|date:"F d, Y H:i" }}</p>
+                                        <p class="mb-0">{{ visit.resident.get_full_name }} {% if visit.status == 'APPROVED' or visit.status == 'CHECKED_IN' or visit.status == 'CHECKED_OUT' %}approved{% else %}rejected{% endif %} this visit request.</p>
+                                        {% if visit.status == 'REJECTED' and visit.rejection_reason %}
+                                            <p class="mt-2 text-danger">Reason: {{ visit.rejection_reason }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </li>
+                        {% endif %}
+                        
+                        {% if visit.entry_time %}
+                            <li class="list-group-item py-3">
+                                <div class="d-flex">
+                                    <div class="timeline-icon bg-primary text-white">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-1">Visitor Checked In</h6>
+                                        <p class="text-muted mb-0 small">{{ visit.entry_time|date:"F d, Y H:i" }}</p>
+                                        <p class="mb-0">Visitor arrived and was checked in by security.</p>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endif %}
+                        
+                        {% if visit.exit_time %}
+                            <li class="list-group-item py-3">
+                                <div class="d-flex">
+                                    <div class="timeline-icon bg-info text-white">
+                                        <i class="fas fa-sign-out-alt"></i>
+                                    </div>
+                                    <div class="ms-3">
+                                        <h6 class="mb-1">Visitor Checked Out</h6>
+                                        <p class="text-muted mb-0 small">{{ visit.exit_time|date:"F d, Y H:i" }}</p>
+                                        <p class="mb-0">Visitor departed and was checked out by security.</p>
+                                    </div>
+                                </div>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+            
+            {% if visit.status == 'APPROVED' or visit.status == 'CHECKED_IN' %}
+                <div class="card shadow">
+                    <div class="card-header bg-light">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog me-2"></i>Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        {% if visit.status == 'APPROVED' %}
+                            <p>This visitor has been approved but hasn't checked in yet.</p>
+                            <a href="{% url 'check_in_visit' visit.id %}" class="btn btn-success w-100">
+                                <i class="fas fa-sign-in-alt me-2"></i>Check In Visitor
+                            </a>
+                        {% elif visit.status == 'CHECKED_IN' %}
+                            <p>This visitor is currently checked in. Check them out when they leave.</p>
+                            <a href="{% url 'check_out_visit' visit.id %}" class="btn btn-info w-100">
+                                <i class="fas fa-sign-out-alt me-2"></i>Check Out Visitor
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %} 
