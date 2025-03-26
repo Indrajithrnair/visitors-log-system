@@ -78,9 +78,9 @@
                             <div class="col-md-4 mb-3">
                                 <div class="card h-100 bg-light">
                                     <div class="card-body text-center">
-                                        <i class="fas fa-cogs fa-2x mb-3 text-secondary"></i>
-                                        <h6>System Settings</h6>
-                                        <a href="#" class="btn btn-sm btn-primary mt-2">Configure</a>
+                                        <i class="fas fa-ban fa-2x mb-3 text-secondary"></i>
+                                        <h6>Blacklist Management</h6>
+                                        <a href="{% url 'blacklist_list' %}" class="btn btn-sm btn-primary mt-2">Manage Blacklist</a>
                                     </div>
                                 </div>
                             </div>
@@ -89,7 +89,7 @@
                                     <div class="card-body text-center">
                                         <i class="fas fa-chart-line fa-2x mb-3 text-secondary"></i>
                                         <h6>All Reports</h6>
-                                        <a href="#" class="btn btn-sm btn-primary mt-2">View Reports</a>
+                                        <a href="{% url 'report_list' %}" class="btn btn-sm btn-primary mt-2">View Reports</a>
                                     </div>
                                 </div>
                             </div>
@@ -119,7 +119,7 @@
                                     <div class="card-body text-center">
                                         <i class="fas fa-file-alt fa-2x mb-3 text-secondary"></i>
                                         <h6>Security Reports</h6>
-                                        <a href="#" class="btn btn-sm btn-primary mt-2">View Reports</a>
+                                        <a href="{% url 'blacklist_list' %}" class="btn btn-sm btn-primary mt-2">View Blacklist</a>
                                     </div>
                                 </div>
                             </div>
@@ -149,7 +149,7 @@
                                     <div class="card-body text-center">
                                         <i class="fas fa-file-alt fa-2x mb-3 text-secondary"></i>
                                         <h6>Basic Reports</h6>
-                                        <a href="#" class="btn btn-sm btn-primary mt-2">View Reports</a>
+                                        <a href="{% url 'report_visitor' %}" class="btn btn-sm btn-primary mt-2">Report Suspicious Visitor</a>
                                     </div>
                                 </div>
                             </div>
@@ -215,6 +215,19 @@
                                                         <td><span class="badge bg-primary">Available</span></td>
                                                         <td><a href="{% url 'resident_visit_requests' %}" class="btn btn-sm btn-outline-primary">View Requests</a></td>
                                                     </tr>
+                                                {% elif user.role == 'ADMIN' %}
+                                                    <tr>
+                                                        <td>{% now "F d, Y" %}</td>
+                                                        <td>Suspicious Visitor Reports</td>
+                                                        <td><span class="badge bg-warning">Pending Review</span></td>
+                                                        <td><a href="{% url 'report_list' %}" class="btn btn-sm btn-outline-primary">View Reports</a></td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{% now "F d, Y" %}</td>
+                                                        <td>Visitor Blacklist Management</td>
+                                                        <td><span class="badge bg-primary">Available</span></td>
+                                                        <td><a href="{% url 'blacklist_list' %}" class="btn btn-sm btn-outline-primary">Manage Blacklist</a></td>
+                                                    </tr>
                                                 {% endif %}
                                             </tbody>
                                         </table>
@@ -255,6 +268,37 @@
                                                         <div class="card-body text-center p-3">
                                                             <i class="fas fa-clipboard-check fa-2x mb-2 text-primary"></i>
                                                             <p class="mb-0">Pending Approvals</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                        {% elif user.role == 'ADMIN' %}
+                                            <div class="col-md-3 col-sm-6">
+                                                <a href="{% url 'report_list' %}" class="text-decoration-none">
+                                                    <div class="card bg-light h-100">
+                                                        <div class="card-body text-center p-3">
+                                                            <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                                                            <p class="mb-0">View Reports</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                            <div class="col-md-3 col-sm-6">
+                                                <a href="{% url 'blacklist_list' %}" class="text-decoration-none">
+                                                    <div class="card bg-light h-100">
+                                                        <div class="card-body text-center p-3">
+                                                            <i class="fas fa-ban fa-2x mb-2 text-primary"></i>
+                                                            <p class="mb-0">Manage Blacklist</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                            <div class="col-md-3 col-sm-6">
+                                                <a href="{% url 'create_blacklist' %}" class="text-decoration-none">
+                                                    <div class="card bg-light h-100">
+                                                        <div class="card-body text-center p-3">
+                                                            <i class="fas fa-user-slash fa-2x mb-2 text-primary"></i>
+                                                            <p class="mb-0">Blacklist Visitor</p>
                                                         </div>
                                                     </div>
                                                 </a>

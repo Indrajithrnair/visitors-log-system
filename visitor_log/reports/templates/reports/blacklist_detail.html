@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-4">
+        <a href="{% url 'blacklist_list' %}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back to Blacklist
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h3>Blacklisted Visitor</h3>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <h5>Visitor Information</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Name</th>
+                                    <td>{{ blacklist.visitor_name }}</td>
+                                </tr>
+                                {% if blacklist.visitor_phone %}
+                                <tr>
+                                    <th>Phone</th>
+                                    <td>{{ blacklist.visitor_phone }}</td>
+                                </tr>
+                                {% endif %}
+                                {% if blacklist.visitor_email %}
+                                <tr>
+                                    <th>Email</th>
+                                    <td>{{ blacklist.visitor_email }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h5>Blacklist Status</h5>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        {% if blacklist.is_active %}
+                                            <span class="badge bg-danger">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Added By</th>
+                                    <td>{{ blacklist.blacklisted_by.username }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date Added</th>
+                                    <td>{{ blacklist.created_at|date:"F d, Y H:i" }}</td>
+                                </tr>
+                                {% if blacklist.expires_at %}
+                                <tr>
+                                    <th>Expires On</th>
+                                    <td>{{ blacklist.expires_at|date:"F d, Y H:i" }}</td>
+                                </tr>
+                                {% endif %}
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h5>Reason for Blacklisting</h5>
+                        <div class="card">
+                            <div class="card-body bg-light">
+                                {{ blacklist.reason|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if blacklist.notes %}
+                    <div class="mb-4">
+                        <h5>Additional Notes</h5>
+                        <div class="card">
+                            <div class="card-body bg-light">
+                                {{ blacklist.notes|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if blacklist.related_report %}
+                    <div class="mb-4">
+                        <h5>Related Report</h5>
+                        <div class="card">
+                            <div class="card-body">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Reported By</th>
+                                        <td>{{ blacklist.related_report.reported_by.username }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Severity</th>
+                                        <td>
+                                            {% if blacklist.related_report.severity == 'LOW' %}
+                                                <span class="badge bg-info">Low</span>
+                                            {% elif blacklist.related_report.severity == 'MEDIUM' %}
+                                                <span class="badge bg-warning">Medium</span>
+                                            {% elif blacklist.related_report.severity == 'HIGH' %}
+                                                <span class="badge bg-danger">High</span>
+                                            {% else %}
+                                                <span class="badge bg-dark">Critical</span>
+                                            {% endif %}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <th>Report Date</th>
+                                        <td>{{ blacklist.related_report.created_at|date:"F d, Y" }}</td>
+                                    </tr>
+                                </table>
+                                <a href="{% url 'report_detail' blacklist.related_report.pk %}" class="btn btn-sm btn-outline-primary mt-2">
+                                    View Full Report
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4>Actions</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" class="mb-3">
+                        {% csrf_token %}
+                        {% if blacklist.is_active %}
+                            <input type="hidden" name="action" value="deactivate">
+                            <button type="submit" class="btn btn-success w-100 mb-3">
+                                <i class="fas fa-check-circle me-2"></i> Remove from Blacklist
+                            </button>
+                        {% else %}
+                            <input type="hidden" name="action" value="activate">
+                            <button type="submit" class="btn btn-danger w-100 mb-3">
+                                <i class="fas fa-ban me-2"></i> Re-Activate Blacklist
+                            </button>
+                        {% endif %}
+                    </form>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="edit">
+                        <button type="submit" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-edit me-2"></i> Edit Blacklist Entry
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -86,7 +86,11 @@
                                                 <i class="fas fa-user fa-lg text-secondary"></i>
                                             </div>
                                             <div class="ms-3">
-                                                <h6 class="mb-0">{{ visit.visitor_name }}</h6>
+                                                <h6 class="mb-0">
+                                                    <a href="{% url 'visit_detail' visit.id %}" class="text-reset text-decoration-hover">
+                                                        {{ visit.visitor_name }}
+                                                    </a>
+                                                </h6>
                                                 {% if visit.visitor_phone %}
                                                 <small class="text-muted">{{ visit.visitor_phone }}</small>
                                                 {% endif %}
@@ -118,9 +122,15 @@
                                                 <a href="{% url 'approve_reject_visit' visit.id %}" class="btn btn-sm btn-outline-primary">
                                                     <i class="fas fa-check-circle me-1"></i>Approve/Reject
                                                 </a>
-                                            {% else %}
-                                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#visitDetails{{ visit.id }}">
+                                                <a href="{% url 'visit_detail' visit.id %}" class="btn btn-sm btn-outline-secondary">
                                                     <i class="fas fa-eye"></i>
+                                                </a>
+                                            {% else %}
+                                                <a href="{% url 'visit_detail' visit.id %}" class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="fas fa-eye me-1"></i>View Details
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#visitDetails{{ visit.id }}">
+                                                    <i class="fas fa-list"></i>
                                                 </button>
                                             {% endif %}
                                         </div>
@@ -193,6 +203,10 @@
                                                 {% endif %}
                                             </div>
                                             <div class="modal-footer">
+                                                <a href="{% url 'report_specific_visitor' visit.id %}" class="btn btn-warning me-auto">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i>Report Suspicious Visitor
+                                                </a>
+                                                <a href="{% url 'visit_detail' visit.id %}" class="btn btn-primary">View Full Details</a>
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                             </div>
                                         </div>

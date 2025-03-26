@@ -31,6 +31,32 @@ class VisitRequestForm(forms.ModelForm):
         if security_guard:
             self.instance.requested_by = security_guard
 
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        # Add blacklist check
+        visitor_name = cleaned_data.get('visitor_name')
+        visitor_phone = cleaned_data.get('visitor_phone')
+        visitor_email = cleaned_data.get('visitor_email')
+        
+        if visitor_name:
+            # Import locally to avoid circular import
+            from reports.views import check_blacklist
+            
+            blacklist_entry = check_blacklist(
+                visitor_name=visitor_name, 
+                visitor_email=visitor_email,
+                visitor_phone=visitor_phone
+            )
+            
+            if blacklist_entry:
+                raise forms.ValidationError(
+                    f"This visitor is blacklisted: {blacklist_entry.reason}. "
+                    f"Please contact an administrator for more information."
+                )
+        
+        return cleaned_data
+
 
 class VisitApprovalForm(forms.Form):
     APPROVAL_CHOICES = (
