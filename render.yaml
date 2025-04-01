@@ -8,35 +8,22 @@ services:
     startCommand: gunicorn visitor_log.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DEBUG
-        value: False
+        value: "False"
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
         value: ".onrender.com,localhost,127.0.0.1"
       - key: PYTHON_VERSION
-        value: 3.12.4
-      - key: DATABASE_URL
-        fromDatabase:
-          name: visitor-log-db
-          property: connectionString
+        value: 3.11.11
+      # Database URL will be automatically set when the database is created
       - key: EMAIL_BACKEND
-        value: django.core.mail.backends.smtp.EmailBackend
-      - key: EMAIL_HOST
-        sync: false  # User needs to set this
-      - key: EMAIL_PORT
-        value: "587"
-      - key: EMAIL_HOST_USER
-        sync: false  # User needs to set this
-      - key: EMAIL_HOST_PASSWORD
-        sync: false  # User needs to set this
-      - key: EMAIL_USE_TLS
-        value: "True"
+        value: django.core.mail.backends.console.EmailBackend
       - key: DEFAULT_FROM_EMAIL
         value: "no-reply@residencymgmt.com"
       - key: RAZORPAY_KEY_ID
-        sync: false  # User needs to set this
+        value: "rzp_test_TVojXHXrNKau7G"
       - key: RAZORPAY_KEY_SECRET
-        sync: false  # User needs to set this
+        value: "DKdUCi1kFcYHLYOjjMD6uGoE"
       - key: RAZORPAY_CURRENCY
         value: "INR"
       - key: RAZORPAY_COMPANY_NAME
@@ -44,7 +31,6 @@ services:
 
 databases:
   - name: visitor-log-db
-    region: oregon  # Choose your preferred region
-    plan: free  # Change to a paid plan for production
-    databaseName: visitor_log  # Optional
-    user: visitor_log_user  # Optional 
+    region: oregon
+    plan: free
+    ipAllowList: [] 

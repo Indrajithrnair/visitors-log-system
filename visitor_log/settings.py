@@ -88,9 +88,16 @@ DATABASES = {
 
 # If DATABASE_URL is set, use that for the database connection (for production)
 DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
+if DATABASE_URL and DATABASE_URL.strip():
     import dj_database_url
-    DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+    try:
+        DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+        print(f"Database configured using DATABASE_URL")
+    except Exception as e:
+        print(f"Error configuring database from URL: {e}")
+        print("Using default SQLite database instead")
+else:
+    print("No DATABASE_URL found, using SQLite database")
 
 
 # Password validation
