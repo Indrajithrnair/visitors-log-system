@@ -11,10 +11,20 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
+
+# Add the project root to the Python path
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Check if we need to adjust for the double-nested structure (happens on Render)
+if os.path.basename(os.getcwd()) != 'visitor_log' and os.path.exists(os.path.join(os.getcwd(), 'visitor_log')):
+    print("Adjusting BASE_DIR for nested structure")
+    # If we're running from the root directory, adjust BASE_DIR to include the nested structure
+    BASE_DIR = Path(os.getcwd()) / 'visitor_log'
 
 
 # Quick-start development settings - unsuitable for production
@@ -129,8 +139,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 # Enable WhiteNoise compression and caching for static files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
