@@ -1,5 +1,6 @@
 import json
 import razorpay
+import logging
 from decimal import Decimal
 from django.conf import settings
 from django.shortcuts import render, redirect, get_object_or_404
@@ -12,14 +13,18 @@ from django.utils import timezone
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.urls import reverse
+from django.db import transaction
+from django.db.models.functions import TruncDate
 from datetime import datetime, timedelta
 from users.views import role_required
 from .models import RentPayment
 from .forms import RentPaymentForm, RentPaymentDateFilterForm
-from django.db.models.functions import TruncDate
 
 # Initialize Razorpay client
 client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+# Setup logger
+logger = logging.getLogger(__name__)
 
 @login_required
 def payment_dashboard(request):
@@ -112,53 +117,106 @@ def initiate_payment(request):
 def payment_callback(request):
     """Handle the Razorpay payment callback."""
     if request.method == 'POST':
+        payment_id = request.POST.get('razorpay_payment_id', None)
+        order_id = request.POST.get('razorpay_order_id', None)
+        signature = request.POST.get('razorpay_signature', None)
+        
+        if not (payment_id and order_id and signature):
+            logger.error("Payment callback received missing parameters.")
+            messages.error(request, "Payment callback error: Missing data.")
+            return redirect('payment_failure')
+            
+        params_dict = {
+            'razorpay_payment_id': payment_id,
+            'razorpay_order_id': order_id,
+            'razorpay_signature': signature
+        }
+        
         try:
-            # Get the payment ID and order ID
-            payment_id = request.POST.get('razorpay_payment_id', '')
-            order_id = request.POST.get('razorpay_order_id', '')
-            signature = request.POST.get('razorpay_signature', '')
-            
-            # Verify the payment signature
-            params_dict = {
-                'razorpay_payment_id': payment_id,
-                'razorpay_order_id': order_id,
-                'razorpay_signature': signature
-            }
-            
             # Verify the payment signature
             client.utility.verify_payment_signature(params_dict)
             
-            # Find the payment record
-            payment = RentPayment.objects.get(order_id=order_id)
-            payment.payment_id = payment_id
-            payment.transaction_id = payment_id  # Using payment_id as transaction_id
-            payment.status = 'PAID'
-            payment.save()
+            # Use a transaction to ensure atomicity
+            with transaction.atomic():
+                # Find the payment record
+                # Use select_for_update to lock the row during transaction
+                payment = RentPayment.objects.select_for_update().get(order_id=order_id)
+                
+                # Idempotency check: Only process if status is PENDING
+                if payment.status == 'PENDING':
+                    payment.payment_id = payment_id
+                    payment.transaction_id = payment_id  # Using payment_id as transaction_id
+                    payment.status = 'PAID'
+                    payment.payment_date = timezone.now() # Record the actual payment time
+                    payment.notes = "Payment successful."
+                    payment.save()
+                    
+                    logger.info(f"Payment successful for order {order_id}, payment {payment_id}")
+                    
+                    # Send email confirmation safely
+                    try:
+                        _send_payment_confirmation_email(payment)
+                        logger.info(f"Confirmation email sent for payment {payment.id}")
+                    except Exception as email_exc:
+                        logger.error(f"Error sending confirmation email for payment {payment.id}: {str(email_exc)}")
+                        # Don't fail the entire process for email error
+                        
+                    messages.success(request, "Payment successful! Your rent payment has been recorded.")
+                    return redirect('payment_success', payment_id=payment.id)
+                
+                elif payment.status == 'PAID':
+                    # Already processed, maybe a duplicate callback
+                    logger.warning(f"Received duplicate callback for already PAID order {order_id}")
+                    messages.info(request, "This payment has already been recorded.")
+                    return redirect('payment_success', payment_id=payment.id)
+                    
+                else: # FAILED or other status
+                    logger.warning(f"Received callback for order {order_id} with status {payment.status}")
+                    messages.warning(request, f"Payment status is currently {payment.status}.")
+                    return redirect('payment_dashboard') # Redirect to dashboard or appropriate page
             
-            # Send email confirmation
+        except RentPayment.DoesNotExist:
+            logger.error(f"Payment callback received for non-existent order_id: {order_id}")
+            messages.error(request, "Payment record not found.")
+            return redirect('payment_failure')
+            
+        except razorpay.errors.SignatureVerificationError as sig_err:
+            logger.error(f"Signature verification failed for order {order_id}: {str(sig_err)}")
+            # Mark payment as failed if verification fails
             try:
-                _send_payment_confirmation_email(payment)
-            except Exception as e:
-                # Log the error but don't stop the process
-                print(f"Error sending confirmation email: {str(e)}")
-            
-            messages.success(request, "Payment successful! Your rent payment has been recorded.")
-            return redirect('payment_success', payment_id=payment.id)
+                with transaction.atomic():
+                    payment = RentPayment.objects.select_for_update().get(order_id=order_id)
+                    if payment.status == 'PENDING': # Only update if it was pending
+                        payment.status = 'FAILED'
+                        payment.notes = f"Signature verification failed: {str(sig_err)}"
+                        payment.save()
+                        logger.info(f"Marked payment for order {order_id} as FAILED due to signature mismatch.")
+            except RentPayment.DoesNotExist:
+                 logger.error(f"Attempted to mark non-existent order {order_id} as FAILED.")
+            except Exception as db_err:
+                 logger.error(f"DB error while marking payment {order_id} as FAILED: {str(db_err)}")
+                 
+            messages.error(request, "Payment verification failed. Please contact support.")
+            return redirect('payment_failure')
             
         except Exception as e:
-            # Payment verification failed
-            if order_id:
-                try:
-                    payment = RentPayment.objects.get(order_id=order_id)
-                    payment.status = 'FAILED'
-                    payment.notes = str(e)
-                    payment.save()
-                except RentPayment.DoesNotExist:
-                    pass
-            
-            messages.error(request, f"Payment failed: {str(e)}")
+            logger.exception(f"General error processing payment callback for order {order_id}: {str(e)}")
+            # Generic failure - attempt to mark as failed if possible
+            try:
+                with transaction.atomic():
+                    payment = RentPayment.objects.select_for_update().get(order_id=order_id)
+                    if payment.status == 'PENDING':
+                        payment.status = 'FAILED'
+                        payment.notes = f"Error during callback processing: {str(e)}"
+                        payment.save()
+                        logger.info(f"Marked payment for order {order_id} as FAILED due to processing error.")
+            except Exception as db_err:
+                 logger.error(f"DB error while marking payment {order_id} as FAILED after general error: {str(db_err)}")
+
+            messages.error(request, f"An error occurred during payment processing: {str(e)}")
             return redirect('payment_failure')
     
+    logger.warning("Payment callback received with non-POST method.")
     return redirect('payment_dashboard')
 
 @login_required
