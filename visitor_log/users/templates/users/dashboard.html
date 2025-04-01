@@ -147,9 +147,9 @@
                             <div class="col-md-4 mb-3">
                                 <div class="card h-100 bg-light">
                                     <div class="card-body text-center">
-                                        <i class="fas fa-file-alt fa-2x mb-3 text-secondary"></i>
-                                        <h6>Basic Reports</h6>
-                                        <a href="{% url 'report_visitor' %}" class="btn btn-sm btn-primary mt-2">Report Suspicious Visitor</a>
+                                        <i class="fas fa-rupee-sign fa-2x mb-3 text-secondary"></i>
+                                        <h6>Rent Payments</h6>
+                                        <a href="{% url 'payment_dashboard' %}" class="btn btn-sm btn-primary mt-2">Manage Payments</a>
                                     </div>
                                 </div>
                             </div>
@@ -215,6 +215,12 @@
                                                         <td><span class="badge bg-primary">Available</span></td>
                                                         <td><a href="{% url 'resident_visit_requests' %}" class="btn btn-sm btn-outline-primary">View Requests</a></td>
                                                     </tr>
+                                                    <tr>
+                                                        <td>{% now "F d, Y" %}</td>
+                                                        <td>Rent Payment System</td>
+                                                        <td><span class="badge bg-primary">Available</span></td>
+                                                        <td><a href="{% url 'payment_dashboard' %}" class="btn btn-sm btn-outline-primary">Make Payment</a></td>
+                                                    </tr>
                                                 {% elif user.role == 'ADMIN' %}
                                                     <tr>
                                                         <td>{% now "F d, Y" %}</td>
@@ -268,6 +274,16 @@
                                                         <div class="card-body text-center p-3">
                                                             <i class="fas fa-clipboard-check fa-2x mb-2 text-primary"></i>
                                                             <p class="mb-0">Pending Approvals</p>
+                                                        </div>
+                                                    </div>
+                                                </a>
+                                            </div>
+                                            <div class="col-md-3 col-sm-6">
+                                                <a href="{% url 'initiate_payment' %}" class="text-decoration-none">
+                                                    <div class="card bg-light h-100">
+                                                        <div class="card-body text-center p-3">
+                                                            <i class="fas fa-money-bill-wave fa-2x mb-2 text-success"></i>
+                                                            <p class="mb-0">Make Payment</p>
                                                         </div>
                                                     </div>
                                                 </a>

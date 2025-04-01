@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h1 class="mb-4">Payment Dashboard</h1>
+    
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Payment Summary</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            {% if pending_amount > 0 %}
+                            <p class="text-danger mb-0">Pending Amount: ₹{{ pending_amount|floatformat:2 }}</p>
+                            {% else %}
+                            <p class="text-success mb-0">No pending payments</p>
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'initiate_payment' %}" class="btn btn-primary">Make Payment</a>
+                    </div>
+                    
+                    {% if next_payment %}
+                    <div class="alert alert-info">
+                        <strong>Next payment due:</strong> {{ next_payment.due_date|date:"F d, Y" }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">Payment History</h5>
+        </div>
+        <div class="card-body">
+            {% if payments %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Transaction ID</th>
+                            <th>Due Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for payment in payments %}
+                        <tr>
+                            <td>{{ payment.payment_date|date:"M d, Y" }}</td>
+                            <td>₹{{ payment.amount|floatformat:2 }}</td>
+                            <td>
+                                {% if payment.status == 'PAID' %}
+                                <span class="badge bg-success">Paid</span>
+                                {% elif payment.status == 'PENDING' %}
+                                <span class="badge bg-warning text-dark">Pending</span>
+                                {% else %}
+                                <span class="badge bg-danger">Failed</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payment.transaction_id %}
+                                {{ payment.transaction_id }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if payment.due_date %}
+                                {{ payment.due_date|date:"M d, Y" }}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                No payment records found. 
+                <a href="{% url 'initiate_payment' %}" class="alert-link">Make your first payment</a>.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Add any dashboard-specific JavaScript here
+</script>
+{% endblock %}

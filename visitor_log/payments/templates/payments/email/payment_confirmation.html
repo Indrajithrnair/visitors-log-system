@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background-color: #4e73df;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            background-color: #f8f9fc;
+            padding: 20px;
+        }
+        .footer {
+            background-color: #eaecf4;
+            padding: 15px;
+            text-align: center;
+            font-size: 12px;
+            color: #858796;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e3e6f0;
+        }
+        th {
+            background-color: #f8f9fc;
+        }
+        .total-row {
+            font-weight: bold;
+        }
+        .success-box {
+            background-color: #1cc88a;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Payment Receipt</h1>
+            <p>{{ company_name }}</p>
+        </div>
+        
+        <div class="content">
+            <div class="success-box">
+                <h2>Payment Successful</h2>
+            </div>
+            
+            <p>Dear {{ user.get_full_name }},</p>
+            
+            <p>Thank you for your payment. This email confirms that your payment has been processed successfully.</p>
+            
+            <h3>Payment Details</h3>
+            <table>
+                <tr>
+                    <th>Payment ID</th>
+                    <td>{{ payment.id }}</td>
+                </tr>
+                <tr>
+                    <th>Transaction ID</th>
+                    <td>{{ payment.transaction_id }}</td>
+                </tr>
+                <tr>
+                    <th>Date</th>
+                    <td>{{ payment.payment_date|date:"F d, Y, h:i A" }}</td>
+                </tr>
+                <tr>
+                    <th>Payment Method</th>
+                    <td>Razorpay</td>
+                </tr>
+                <tr class="total-row">
+                    <th>Amount</th>
+                    <td>₹{{ payment.amount|floatformat:2 }}</td>
+                </tr>
+            </table>
+            
+            {% if payment.notes %}
+            <h3>Notes</h3>
+            <p>{{ payment.notes }}</p>
+            {% endif %}
+            
+            <p>If you have any questions about your payment, please contact our support team.</p>
+            
+            <p>Thank you,<br>
+            {{ company_name }} Team</p>
+        </div>
+        
+        <div class="footer">
+            <p>This is an automated email. Please do not reply to this message.</p>
+            <p>&copy; {% now "Y" %} {{ company_name }}. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

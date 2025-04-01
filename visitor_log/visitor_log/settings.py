@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'visits',
     'reports',
     'notifications',
+    'payments',
 ]
 
 MIDDLEWARE = [
@@ -133,12 +134,12 @@ LOGIN_REDIRECT_URL = 'dashboard'
 LOGIN_URL = 'login'
 LOGOUT_REDIRECT_URL = 'login'
 
-# Email settings for development
+# Email settings (for development)
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
-EMAIL_USE_TLS = False
-DEFAULT_FROM_EMAIL = 'noreply@visitorlog.com'
+DEFAULT_FROM_EMAIL = 'no-reply@residencymgmt.com'
 
-# Domain for links in emails
-DOMAIN = 'localhost:8000'
+# Razorpay settings
+RAZORPAY_KEY_ID = 'rzp_test_TVojXHXrNKau7G'  # Replace with your Razorpay test key in production
+RAZORPAY_KEY_SECRET = 'DKdUCi1kFcYHLYOjjMD6uGoE'  # Replace with your Razorpay secret key in production
+RAZORPAY_CURRENCY = 'INR'
+RAZORPAY_COMPANY_NAME = 'Residency Management'
