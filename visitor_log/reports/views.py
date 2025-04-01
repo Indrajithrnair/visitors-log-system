@@ -264,6 +264,26 @@ def edit_blacklist(request, pk):
     })
 
 
+@login_required
+@role_required(['ADMIN'])
+def delete_from_blacklist(request, pk):
+    """
+    Admin view to remove a visitor from blacklist
+    """
+    blacklist_entry = get_object_or_404(Blacklist, pk=pk)
+    
+    if request.method == 'POST':
+        visitor_name = blacklist_entry.visitor_name
+        blacklist_entry.delete()
+        messages.success(request, f"{visitor_name} has been removed from the blacklist.")
+        return redirect('blacklist_list')
+        
+    return render(request, 'reports/delete_blacklist_confirm.html', {
+        'blacklist': blacklist_entry,
+        'title': 'Remove from Blacklist'
+    })
+
+
 # Hook into visit request creation to check blacklist
 def check_blacklist(visitor_name, visitor_email=None, visitor_phone=None):
     """

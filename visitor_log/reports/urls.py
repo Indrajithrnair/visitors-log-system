@@ -14,4 +14,5 @@ urlpatterns = [
     path('blacklist/create/<int:report_id>/', views.create_blacklist, name='create_blacklist'),
     path('blacklist/<int:pk>/', views.blacklist_detail, name='blacklist_detail'),
     path('blacklist/<int:pk>/edit/', views.edit_blacklist, name='edit_blacklist'),
+    path('blacklist/<int:pk>/delete/', views.delete_from_blacklist, name='delete_from_blacklist'),
 ] 

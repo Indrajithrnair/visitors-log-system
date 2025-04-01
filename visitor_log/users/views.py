@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -6,10 +6,11 @@ from django.contrib.auth.views import (
     LoginView, LogoutView, PasswordResetView, PasswordResetDoneView,
     PasswordResetConfirmView, PasswordResetCompleteView
 )
-from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views.generic import TemplateView
 from django.contrib import messages
+
+from .forms import ProfileEditForm
 
 # Create your views here.
 
@@ -59,6 +60,22 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         user = self.request.user
         context['user'] = user
         return context
+
+@login_required
+def edit_profile(request):
+    if request.method == 'POST':
+        form = ProfileEditForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Your profile has been updated successfully!')
+            return redirect('dashboard')
+    else:
+        form = ProfileEditForm(instance=request.user)
+    
+    return render(request, 'users/edit_profile.html', {
+        'form': form,
+        'title': 'Edit Profile'
+    })
 
 def role_required(allowed_roles):
     def decorator(view_func):
