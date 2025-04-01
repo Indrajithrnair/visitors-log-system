@@ -5,7 +5,7 @@ services:
     region: oregon  # Choose your preferred region
     plan: free  # Change to a paid plan for production
     buildCommand: ./build.sh
-    startCommand: ./run.sh
+    startCommand: gunicorn visitor_log.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: DEBUG
         value: False
