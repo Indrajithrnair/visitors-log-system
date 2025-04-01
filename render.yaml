@@ -12,7 +12,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: ALLOWED_HOSTS
-        value: ".onrender.com,localhost,127.0.0.1"
+        value: "visitors-log-system.onrender.com,.onrender.com,localhost,127.0.0.1"
       - key: PYTHON_VERSION
         value: 3.11.11
       # Database URL will be automatically set when the database is created
