@@ -15,7 +15,8 @@ services:
         value: "visitors-log-system.onrender.com,.onrender.com,localhost,127.0.0.1"
       - key: PYTHON_VERSION
         value: 3.11.11
-      # Database URL will be automatically set when the database is created
+      - key: USE_SQLITE
+        value: "True"
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.console.EmailBackend
       - key: DEFAULT_FROM_EMAIL
@@ -28,9 +29,7 @@ services:
         value: "INR"
       - key: RAZORPAY_COMPANY_NAME
         value: "Residency Management"
-
-databases:
-  - name: visitor-log-db
-    region: oregon
-    plan: free
-    ipAllowList: [] 
+    disk:
+      name: sqlite-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
