@@ -15,7 +15,11 @@ services:
         value: "visitors-log-system.onrender.com,.onrender.com,localhost,127.0.0.1"
       - key: PYTHON_VERSION
         value: 3.11.11
-      # Database URL will be automatically set when the database is created
+      # Database configuration
+      - key: DATABASE_URL
+        fromDatabase:
+          name: visitor-log-db
+          property: connectionString
       - key: EMAIL_BACKEND
         value: django.core.mail.backends.console.EmailBackend
       - key: DEFAULT_FROM_EMAIL
@@ -33,6 +37,4 @@ databases:
   - name: visitor-log-db
     region: oregon
     plan: free
-    ipAllowList: [] ite-data
-      mountPath: /opt/render/project/src/data
-      sizeGB: 1
+    ipAllowList: []
