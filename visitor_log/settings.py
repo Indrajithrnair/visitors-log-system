@@ -88,44 +88,25 @@ WSGI_APPLICATION = 'visitor_log.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
-# Always use SQLite for this deployment
-print("Database configuration starting...")
-
-# Check if running on Render.com
-IS_RENDER = os.environ.get('RENDER', '') == 'true'
-print(f"Running on Render: {IS_RENDER}")
-
-# Force SQLite regardless of environment
-DATABASE_DIR = '/opt/render/project/src/data' if IS_RENDER else str(BASE_DIR)
-print(f"Database directory: {DATABASE_DIR}")
-
-# Ensure the database directory exists
-if IS_RENDER and not os.path.exists(DATABASE_DIR):
-    try:
-        os.makedirs(DATABASE_DIR, exist_ok=True)
-        print(f"Created database directory: {DATABASE_DIR}")
-    except Exception as e:
-        print(f"Error creating database directory: {e}")
-
-# Determine the SQLite database path
-SQLITE_PATH = os.path.join(DATABASE_DIR, 'db.sqlite3')
-print(f"SQLite database path: {SQLITE_PATH}")
-
-# Configure the database to always use SQLite
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': SQLITE_PATH,
-        'ATOMIC_REQUESTS': True,
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
-print(f"Database configured using SQLite at {SQLITE_PATH}")
-
-# Ignore any DATABASE_URL environment variables
+# If DATABASE_URL is set, use that for the database connection (for production)
 DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL:
-    print("DATABASE_URL is set but will be ignored, using SQLite only")
+if DATABASE_URL and DATABASE_URL.strip():
+    import dj_database_url
+    try:
+        DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
+        print(f"Database configured using DATABASE_URL")
+    except Exception as e:
+        print(f"Error configuring database from URL: {e}")
+        print("Using default SQLite database instead")
+else:
+    print("No DATABASE_URL found, using SQLite database")
 
 
 # Password validation
@@ -209,6 +190,9 @@ if not DEBUG:
     SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
+    SECURE_BROWSER_XSS_FILTER = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY' 
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
     X_FRAME_OPTIONS = 'DENY' 

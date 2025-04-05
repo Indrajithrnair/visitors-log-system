@@ -3,60 +3,21 @@
 # Exit on error
 set -o errexit
 
-# Debug info
-echo "=============== DEPLOYMENT DEBUG INFO ==============="
-echo "Current working directory: $(pwd)"
-echo "Python version: $(python --version)"
-ls -la
-
-# Install dependencies
-echo "\n=============== INSTALLING DEPENDENCIES ==============="
+# Modify this line as needed for your package manager (pip, poetry, etc.)
 pip install -r requirements.txt
 
-# Create data directory for SQLite database
-echo "\n=============== SETTING UP DATABASE ==============="
-echo "Creating persistent storage directory..."
-DATA_DIR="/opt/render/project/src/data"
-mkdir -p "$DATA_DIR"
-chmod 775 "$DATA_DIR"
+# Print current directory for debugging
+echo "Current directory: $(pwd)"
+ls -la
 
-# Set up static files
-echo "\n=============== COLLECTING STATIC FILES ==============="
+# Convert static asset files
 python manage.py collectstatic --no-input
 
-# Database setup - Create fresh database if doesn't exist
-SQLITE_DB="$DATA_DIR/db.sqlite3"
-echo "Checking for database at $SQLITE_DB"
+# Apply any outstanding database migrations
+python manage.py migrate --noinput
 
-if [ ! -f "$SQLITE_DB" ]; then
-  echo "No database found. Creating a new one..."
-  touch "$SQLITE_DB"
-  chmod 664 "$SQLITE_DB"
-  echo "Database file created at $SQLITE_DB"
-fi
-
-# Run manual SQL to ensure database structure
-echo "\n=============== PREPARING DATABASE ==============="
-echo "Running migrations on $SQLITE_DB"
-cd visitor_log
-LS_BEFORE="$(ls -la ../data)"
-echo "Database directory contents before migrations: $LS_BEFORE"
-
-# Run migrations with verbosity for more debug info
-echo "Running migrations..."
-python ../manage.py migrate --noinput --verbosity 2
-
-LS_AFTER="$(ls -la ../data)"
-echo "Database directory contents after migrations: $LS_AFTER"
-
-# Create admin user
-echo "\n=============== CREATING ADMIN USER ==============="
-python << END
-import os
-import django
-import sqlite3
-
-# Setup Django environment
+# Run deployment checks
+python manage.py check --deploy
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'visitor_log.settings')
 django.setup()
 
