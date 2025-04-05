@@ -88,41 +88,44 @@ WSGI_APPLICATION = 'visitor_log.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
+# Always use SQLite for this deployment
+print("Database configuration starting...")
+
 # Check if running on Render.com
 IS_RENDER = os.environ.get('RENDER', '') == 'true'
-USE_SQLITE = os.environ.get('USE_SQLITE', 'False') == 'True'
+print(f"Running on Render: {IS_RENDER}")
+
+# Force SQLite regardless of environment
+DATABASE_DIR = '/opt/render/project/src/data' if IS_RENDER else str(BASE_DIR)
+print(f"Database directory: {DATABASE_DIR}")
+
+# Ensure the database directory exists
+if IS_RENDER and not os.path.exists(DATABASE_DIR):
+    try:
+        os.makedirs(DATABASE_DIR, exist_ok=True)
+        print(f"Created database directory: {DATABASE_DIR}")
+    except Exception as e:
+        print(f"Error creating database directory: {e}")
 
 # Determine the SQLite database path
-if IS_RENDER and os.path.exists('/opt/render/project/src/data'):
-    # Use the persistent disk on Render
-    SQLITE_PATH = '/opt/render/project/src/data/db.sqlite3'
-    print(f"Using SQLite database at {SQLITE_PATH}")
-else:
-    # Use local path for development
-    SQLITE_PATH = BASE_DIR / 'db.sqlite3'
-    print(f"Using SQLite database at {SQLITE_PATH}")
+SQLITE_PATH = os.path.join(DATABASE_DIR, 'db.sqlite3')
+print(f"SQLite database path: {SQLITE_PATH}")
 
-# Configure the database
+# Configure the database to always use SQLite
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': SQLITE_PATH,
+        'ATOMIC_REQUESTS': True,
     }
 }
 
-# Only use PostgreSQL if explicitly not using SQLite and DATABASE_URL is provided
-if not USE_SQLITE:
-    DATABASE_URL = os.environ.get('DATABASE_URL')
-    if DATABASE_URL and DATABASE_URL.strip():
-        import dj_database_url
-        try:
-            DATABASES['default'] = dj_database_url.config(default=DATABASE_URL, conn_max_age=600)
-            print(f"Database configured using DATABASE_URL")
-        except Exception as e:
-            print(f"Error configuring database from URL: {e}")
-            print("Falling back to SQLite database")
-    else:
-        print("No DATABASE_URL found, using SQLite database")
+print(f"Database configured using SQLite at {SQLITE_PATH}")
+
+# Ignore any DATABASE_URL environment variables
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL:
+    print("DATABASE_URL is set but will be ignored, using SQLite only")
 
 
 # Password validation
