@@ -9,7 +9,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
-db.sqlite3
 staticfiles/
 *.log
 .DS_Store
