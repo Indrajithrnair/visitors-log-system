@@ -181,16 +181,34 @@
             return `${year}-${month}-${day}T${hours}:${minutes}`;
         }
         
-        // Set min attribute to current date/time
-        expectedArrivalInput.min = getCurrentDateTime();
+        // Set min attribute to current date/time and update it every minute
+        function updateMinDateTime() {
+            expectedArrivalInput.min = getCurrentDateTime();
+        }
         
-        // Add validation for expected arrival date
-        expectedArrivalInput.addEventListener('change', function() {
-            const selectedDateTime = new Date(this.value);
+        // Initialize min attribute
+        updateMinDateTime();
+        
+        // Update min attribute every minute to ensure it's always current
+        setInterval(updateMinDateTime, 60000);
+        
+        // More precise validation function that ensures the selected time is truly in the future
+        function validateFutureDateTime(datetimeValue) {
+            if (!datetimeValue) return false;
+            
+            const selectedDateTime = new Date(datetimeValue);
             const currentDateTime = new Date();
             
-            if (selectedDateTime <= currentDateTime) {
-                this.setCustomValidity('Expected arrival time must be in the future.');
+            // Add a small buffer (30 seconds) to account for form submission delay
+            currentDateTime.setSeconds(currentDateTime.getSeconds() + 30);
+            
+            return selectedDateTime > currentDateTime;
+        }
+        
+        // Add validation for expected arrival date and time
+        expectedArrivalInput.addEventListener('change', function() {
+            if (!validateFutureDateTime(this.value)) {
+                this.setCustomValidity('Expected arrival time must be at least a few minutes in the future.');
             } else {
                 this.setCustomValidity('');
             }
@@ -200,12 +218,9 @@
         Array.prototype.slice.call(forms)
             .forEach(function (form) {
                 form.addEventListener('submit', function (event) {
-                    // Check expected arrival date validity again on form submission
-                    const selectedDateTime = new Date(expectedArrivalInput.value);
-                    const currentDateTime = new Date();
-                    
-                    if (selectedDateTime <= currentDateTime) {
-                        expectedArrivalInput.setCustomValidity('Expected arrival time must be in the future.');
+                    // Check expected arrival date/time validity again on form submission
+                    if (!validateFutureDateTime(expectedArrivalInput.value)) {
+                        expectedArrivalInput.setCustomValidity('Expected arrival time must be at least a few minutes in the future.');
                     } else {
                         expectedArrivalInput.setCustomValidity('');
                     }

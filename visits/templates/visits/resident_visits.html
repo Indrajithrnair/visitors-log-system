@@ -126,19 +126,16 @@
                                                     <i class="fas fa-eye"></i>
                                                 </a>
                                             {% else %}
-                                                <a href="{% url 'visit_detail' visit.id %}" class="btn btn-sm btn-outline-primary me-1">
+                                                <a href="#" class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#visitDetails{{ visit.id }}">
                                                     <i class="fas fa-eye me-1"></i>View Details
                                                 </a>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#visitDetails{{ visit.id }}">
-                                                    <i class="fas fa-list"></i>
-                                                </button>
                                             {% endif %}
                                         </div>
                                     </td>
                                 </tr>
                                 
                                 <!-- Visit Details Modal -->
-                                <div class="modal fade" id="visitDetails{{ visit.id }}" tabindex="-1" aria-labelledby="visitDetailsLabel{{ visit.id }}" aria-hidden="true">
+                                <div class="modal fade" id="visitDetails{{ visit.id }}" tabindex="-1" aria-labelledby="visitDetailsLabel{{ visit.id }}" aria-hidden="true" data-bs-backdrop="static">
                                     <div class="modal-dialog modal-lg">
                                         <div class="modal-content">
                                             <div class="modal-header">
@@ -206,7 +203,6 @@
                                                 <a href="{% url 'report_specific_visitor' visit.id %}" class="btn btn-warning me-auto">
                                                     <i class="fas fa-exclamation-triangle me-2"></i>Report Suspicious Visitor
                                                 </a>
-                                                <a href="{% url 'visit_detail' visit.id %}" class="btn btn-primary">View Full Details</a>
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                             </div>
                                         </div>
@@ -294,4 +290,51 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fix for the infinite modal popup issue
+        // Simply use Bootstrap's built-in modal functionality with proper initialization
+
+        // Initialize all modals on the page
+        const visitModals = document.querySelectorAll('.modal');
+        visitModals.forEach(modalEl => {
+            const modal = new bootstrap.Modal(modalEl, {
+                backdrop: 'static',
+                keyboard: false
+            });
+            
+            // Store the modal instance to prevent memory leaks
+            modalEl._bootstrapModal = modal;
+            
+            // Add event listener to properly dispose the modal on hidden event
+            modalEl.addEventListener('hidden.bs.modal', function() {
+                // This allows the modal to be reopened properly
+                modalEl.classList.remove('show');
+                document.body.classList.remove('modal-open');
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => {
+                    backdrop.remove();
+                });
+            });
+        });
+        
+        // Ensure we clean up existing backdrops when showing a modal
+        const modalToggles = document.querySelectorAll('[data-bs-toggle="modal"]');
+        modalToggles.forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                // Remove any stray backdrops first
+                const existingBackdrops = document.querySelectorAll('.modal-backdrop');
+                existingBackdrops.forEach(backdrop => {
+                    backdrop.remove();
+                });
+                
+                // Remove modal-open class from body
+                document.body.classList.remove('modal-open');
+            });
+        });
+    });
+</script>
 {% endblock %} 

@@ -38,7 +38,12 @@ class VisitRequestForm(forms.ModelForm):
         now = timezone.now()
         
         if expected_arrival and expected_arrival <= now:
-            raise ValidationError("Expected arrival time must be in the future.")
+            # Add a more specific message depending on how close the time is to now
+            time_diff = expected_arrival - now
+            if time_diff.days < 0:
+                raise ValidationError("Expected arrival date must be in the future.")
+            else:
+                raise ValidationError("Expected arrival time must be at least a few minutes in the future.")
             
         return expected_arrival
 
