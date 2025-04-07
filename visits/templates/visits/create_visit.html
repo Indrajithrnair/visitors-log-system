@@ -166,10 +166,50 @@
         // Fetch all the forms we want to apply custom Bootstrap validation styles to
         var forms = document.querySelectorAll('.needs-validation')
 
+        // Set min date for expected arrival to current date/time
+        const expectedArrivalInput = document.getElementById('{{ form.expected_arrival.id_for_label }}');
+        
+        // Format current date and time to ISO format for datetime-local input
+        function getCurrentDateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+        
+        // Set min attribute to current date/time
+        expectedArrivalInput.min = getCurrentDateTime();
+        
+        // Add validation for expected arrival date
+        expectedArrivalInput.addEventListener('change', function() {
+            const selectedDateTime = new Date(this.value);
+            const currentDateTime = new Date();
+            
+            if (selectedDateTime <= currentDateTime) {
+                this.setCustomValidity('Expected arrival time must be in the future.');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+
         // Loop over them and prevent submission
         Array.prototype.slice.call(forms)
             .forEach(function (form) {
                 form.addEventListener('submit', function (event) {
+                    // Check expected arrival date validity again on form submission
+                    const selectedDateTime = new Date(expectedArrivalInput.value);
+                    const currentDateTime = new Date();
+                    
+                    if (selectedDateTime <= currentDateTime) {
+                        expectedArrivalInput.setCustomValidity('Expected arrival time must be in the future.');
+                    } else {
+                        expectedArrivalInput.setCustomValidity('');
+                    }
+                    
                     if (!form.checkValidity()) {
                         event.preventDefault()
                         event.stopPropagation()

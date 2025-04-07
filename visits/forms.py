@@ -1,6 +1,8 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from .models import Visit
+from django.utils import timezone
+from django.core.exceptions import ValidationError
 
 User = get_user_model()
 
@@ -30,6 +32,15 @@ class VisitRequestForm(forms.ModelForm):
         # Assign the form to the security guard who's creating it
         if security_guard:
             self.instance.requested_by = security_guard
+
+    def clean_expected_arrival(self):
+        expected_arrival = self.cleaned_data.get('expected_arrival')
+        now = timezone.now()
+        
+        if expected_arrival and expected_arrival <= now:
+            raise ValidationError("Expected arrival time must be in the future.")
+            
+        return expected_arrival
 
     def clean(self):
         cleaned_data = super().clean()
