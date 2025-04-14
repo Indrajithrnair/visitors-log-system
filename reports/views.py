@@ -288,17 +288,7 @@ def delete_from_blacklist(request, pk):
 def check_blacklist(visitor_name, visitor_email=None, visitor_phone=None):
     """
     Utility function to check if a visitor is blacklisted
-    Returns the blacklist entry if found, None otherwise
+    Now modified to always return None - blacklist check disabled
     """
-    blacklist_query = Q(visitor_name__iexact=visitor_name, is_active=True)
-    
-    if visitor_email:
-        blacklist_query |= Q(visitor_email__iexact=visitor_email, is_active=True)
-    
-    if visitor_phone:
-        blacklist_query |= Q(visitor_phone__iexact=visitor_phone, is_active=True)
-    
-    try:
-        return Blacklist.objects.filter(blacklist_query).first()
-    except:
-        return None
+    # Blacklist checking has been disabled
+    return None

@@ -4,21 +4,58 @@ from django.contrib import messages
 from django.utils import timezone
 from django.db.models import Q
 from django.core.paginator import Paginator
+import logging
+import sys
+import traceback
 
 from .models import Visit
 from .forms import VisitRequestForm, VisitApprovalForm, VisitFilterForm, VisitCheckInOutForm
 from users.views import role_required
 
+# Set up logging
+logger = logging.getLogger(__name__)
 
 @login_required
 @role_required(['SECURITY'])
 def create_visit_request(request):
+    print(f"DEBUG: User {request.user.username} (role: {request.user.role}) is attempting to create a visit request")
+    
     if request.method == 'POST':
-        form = VisitRequestForm(request.POST, user=request.user)
-        if form.is_valid():
-            visit = form.save()
-            messages.success(request, f"Visit request for {visit.visitor_name} has been created successfully.")
-            return redirect('visit_list')
+        print(f"DEBUG: POST data received: {dict(request.POST)}")
+        
+        try:
+            form = VisitRequestForm(request.POST, user=request.user)
+            
+            if form.is_valid():
+                print("DEBUG: Form is valid, saving visit")
+                
+                # Make sure the user is correctly set
+                form.instance.requested_by = request.user
+                print(f"DEBUG: Manually set requested_by to {request.user.username} (ID: {request.user.id})")
+                
+                try:
+                    visit = form.save()
+                    
+                    if visit and hasattr(visit, 'id'):
+                        print(f"DEBUG: Visit created successfully: ID={visit.id}, Visitor={visit.visitor_name}, Resident={visit.resident.username}")
+                        messages.success(request, f"Visit request for {visit.visitor_name} has been created successfully.")
+                        return redirect('visit_list')
+                    else:
+                        print("DEBUG ERROR: Visit was not created or has no ID")
+                        messages.error(request, "An error occurred while creating the visit request. Please try again.")
+                except Exception as e:
+                    print(f"DEBUG EXCEPTION saving form: {str(e)}")
+                    traceback.print_exc(file=sys.stdout)
+                    messages.error(request, f"Error creating visit: {str(e)}")
+            else:
+                print(f"DEBUG: Form validation failed: {form.errors}")
+                for field, errors in form.errors.items():
+                    for error in errors:
+                        messages.error(request, f"Error in {field}: {error}")
+        except Exception as e:
+            print(f"DEBUG EXCEPTION in create_visit_request: {str(e)}")
+            traceback.print_exc(file=sys.stdout)
+            messages.error(request, f"An unexpected error occurred: {str(e)}")
     else:
         form = VisitRequestForm(user=request.user)
     

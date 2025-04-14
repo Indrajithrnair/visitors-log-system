@@ -20,6 +20,23 @@
         <div class="col-md-8">
             <div class="card shadow">
                 <div class="card-body p-4">
+                    <!-- Display form errors at the top -->
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <h5><i class="fas fa-exclamation-triangle me-2"></i>Please correct the errors below:</h5>
+                        <ul>
+                            {% for field in form %}
+                                {% for error in field.errors %}
+                                    <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+
                     <form method="post" class="needs-validation" novalidate>
                         {% csrf_token %}
                         
@@ -32,7 +49,7 @@
                                 <option value="">Select a resident</option>
                                 {% for choice in form.resident.field.choices %}
                                     {% if choice.0 %}
-                                        <option value="{{ choice.0 }}">{{ choice.1 }}</option>
+                                        <option value="{{ choice.0 }}" {% if form.resident.value|stringformat:"s" == choice.0|stringformat:"s" %}selected{% endif %}>{{ choice.1 }}</option>
                                     {% endif %}
                                 {% endfor %}
                             </select>
@@ -49,7 +66,7 @@
                                 <i class="fas fa-user me-2"></i>Visitor Name
                             </label>
                             {{ form.visitor_name.errors }}
-                            <input type="text" name="{{ form.visitor_name.name }}" class="form-control" id="{{ form.visitor_name.id_for_label }}" required>
+                            <input type="text" name="{{ form.visitor_name.name }}" class="form-control" id="{{ form.visitor_name.id_for_label }}" required value="{{ form.visitor_name.value|default:'' }}">
                             <div class="invalid-feedback">
                                 Please enter the visitor's name.
                             </div>
@@ -62,7 +79,7 @@
                                         <i class="fas fa-phone me-2"></i>Visitor Phone
                                     </label>
                                     {{ form.visitor_phone.errors }}
-                                    <input type="tel" name="{{ form.visitor_phone.name }}" class="form-control" id="{{ form.visitor_phone.id_for_label }}">
+                                    <input type="tel" name="{{ form.visitor_phone.name }}" class="form-control" id="{{ form.visitor_phone.id_for_label }}" value="{{ form.visitor_phone.value|default:'' }}">
                                     <small class="form-text text-muted">Optional but recommended</small>
                                 </div>
                             </div>
@@ -72,7 +89,7 @@
                                         <i class="fas fa-envelope me-2"></i>Visitor Email
                                     </label>
                                     {{ form.visitor_email.errors }}
-                                    <input type="email" name="{{ form.visitor_email.name }}" class="form-control" id="{{ form.visitor_email.id_for_label }}">
+                                    <input type="email" name="{{ form.visitor_email.name }}" class="form-control" id="{{ form.visitor_email.id_for_label }}" value="{{ form.visitor_email.value|default:'' }}">
                                     <small class="form-text text-muted">Required for visitor notifications</small>
                                 </div>
                             </div>
@@ -83,7 +100,7 @@
                                 <i class="fas fa-file-alt me-2"></i>Purpose of Visit
                             </label>
                             {{ form.purpose.errors }}
-                            <textarea name="{{ form.purpose.name }}" class="form-control" id="{{ form.purpose.id_for_label }}" rows="2" required></textarea>
+                            <textarea name="{{ form.purpose.name }}" class="form-control" id="{{ form.purpose.id_for_label }}" rows="2" required>{{ form.purpose.value|default:'' }}</textarea>
                             <div class="invalid-feedback">
                                 Please provide the purpose of the visit.
                             </div>
@@ -94,7 +111,7 @@
                                 <i class="fas fa-calendar-alt me-2"></i>Expected Arrival
                             </label>
                             {{ form.expected_arrival.errors }}
-                            <input type="datetime-local" name="{{ form.expected_arrival.name }}" class="form-control" id="{{ form.expected_arrival.id_for_label }}" required>
+                            <input type="datetime-local" name="{{ form.expected_arrival.name }}" class="form-control" id="{{ form.expected_arrival.id_for_label }}" required value="{{ form.expected_arrival.value|default:'' }}">
                             <div class="invalid-feedback">
                                 Please select the expected arrival time.
                             </div>
@@ -108,7 +125,7 @@
                                 <i class="fas fa-sticky-note me-2"></i>Additional Notes
                             </label>
                             {{ form.notes.errors }}
-                            <textarea name="{{ form.notes.name }}" class="form-control" id="{{ form.notes.id_for_label }}" rows="3"></textarea>
+                            <textarea name="{{ form.notes.name }}" class="form-control" id="{{ form.notes.id_for_label }}" rows="3">{{ form.notes.value|default:'' }}</textarea>
                             <small class="form-text text-muted">Any additional information about the visit (optional)</small>
                         </div>
                         
@@ -126,114 +143,44 @@
         </div>
         
         <div class="col-md-4">
-            <div class="card shadow">
-                <div class="card-header bg-primary text-white">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-light">
                     <h5 class="mb-0">
-                        <i class="fas fa-info-circle me-2"></i>Important Information
+                        <i class="fas fa-info-circle me-2"></i>Instructions
                     </h5>
                 </div>
                 <div class="card-body">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            The resident will receive a notification and must approve the visit.
+                    <p>Complete this form to create a new visit request for a resident.</p>
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>All fields marked with an asterisk (*) are required.
                         </li>
-                        <li class="list-group-item">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            If you provide the visitor's email, they will be notified about their visit status.
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>The expected arrival time must be in the future.
                         </li>
-                        <li class="list-group-item">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            Visit requests are pending until approved by the resident.
+                        <li class="mb-2">
+                            <i class="fas fa-check-circle text-success me-2"></i>The resident will receive a notification to approve or reject this request.
                         </li>
-                        <li class="list-group-item">
-                            <i class="fas fa-check-circle text-success me-2"></i>
-                            You can track all visit requests in the Visit List.
+                        <li>
+                            <i class="fas fa-check-circle text-success me-2"></i>Phone number and email are used for verification during check-in.
                         </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title">Debug Info</h5>
+                    <p class="card-text">If you're having issues creating visits, check these:</p>
+                    <ul>
+                        <li>Make sure you're logged in as a SECURITY user</li>
+                        <li>Make sure there are residents in the system</li>
+                        <li>Set the expected arrival time in the future</li>
+                        <li>Fill in all required fields</li>
                     </ul>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-{% block extra_js %}
-<script>
-    // Example starter JavaScript for disabling form submissions if there are invalid fields
-    (function () {
-        'use strict'
-
-        // Fetch all the forms we want to apply custom Bootstrap validation styles to
-        var forms = document.querySelectorAll('.needs-validation')
-
-        // Set min date for expected arrival to current date/time
-        const expectedArrivalInput = document.getElementById('{{ form.expected_arrival.id_for_label }}');
-        
-        // Format current date and time to ISO format for datetime-local input
-        function getCurrentDateTime() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const day = String(now.getDate()).padStart(2, '0');
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            
-            return `${year}-${month}-${day}T${hours}:${minutes}`;
-        }
-        
-        // Set min attribute to current date/time and update it every minute
-        function updateMinDateTime() {
-            expectedArrivalInput.min = getCurrentDateTime();
-        }
-        
-        // Initialize min attribute
-        updateMinDateTime();
-        
-        // Update min attribute every minute to ensure it's always current
-        setInterval(updateMinDateTime, 60000);
-        
-        // More precise validation function that ensures the selected time is truly in the future
-        function validateFutureDateTime(datetimeValue) {
-            if (!datetimeValue) return false;
-            
-            const selectedDateTime = new Date(datetimeValue);
-            const currentDateTime = new Date();
-            
-            // Add a small buffer (30 seconds) to account for form submission delay
-            currentDateTime.setSeconds(currentDateTime.getSeconds() + 30);
-            
-            return selectedDateTime > currentDateTime;
-        }
-        
-        // Add validation for expected arrival date and time
-        expectedArrivalInput.addEventListener('change', function() {
-            if (!validateFutureDateTime(this.value)) {
-                this.setCustomValidity('Expected arrival time must be at least a few minutes in the future.');
-            } else {
-                this.setCustomValidity('');
-            }
-        });
-
-        // Loop over them and prevent submission
-        Array.prototype.slice.call(forms)
-            .forEach(function (form) {
-                form.addEventListener('submit', function (event) {
-                    // Check expected arrival date/time validity again on form submission
-                    if (!validateFutureDateTime(expectedArrivalInput.value)) {
-                        expectedArrivalInput.setCustomValidity('Expected arrival time must be at least a few minutes in the future.');
-                    } else {
-                        expectedArrivalInput.setCustomValidity('');
-                    }
-                    
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-
-                    form.classList.add('was-validated')
-                }, false)
-            })
-    })()
-</script>
-{% endblock %}
 {% endblock %} 
